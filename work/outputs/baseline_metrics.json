@@ -1,0 +1,54 @@
+{
+  "month": "2026-03",
+  "n_content_scored": 176738,
+  "signal_1_ctr_by_position": [
+    {
+      "position_tier": "1-3",
+      "n": 727362,
+      "avg_ctr": 0.004755515699920507
+    },
+    {
+      "position_tier": "11-20",
+      "n": 519223,
+      "avg_ctr": 0.0027699096811337584
+    },
+    {
+      "position_tier": "20+",
+      "n": 908354,
+      "avg_ctr": 0.001289153117819274
+    },
+    {
+      "position_tier": "4-10",
+      "n": 1456122,
+      "avg_ctr": 0.003472635519611749
+    }
+  ],
+  "signal_1_verdict": "CONFIRMED",
+  "signal_2_volume_by_zone": [
+    {
+      "zone": "beyond_page_2",
+      "n": 908354,
+      "total_impressions": 59412876.0,
+      "avg_impressions": 65.40718266226604
+    },
+    {
+      "zone": "page_1",
+      "n": 2183484,
+      "total_impressions": 191858707.0,
+      "avg_impressions": 87.86815337323287
+    },
+    {
+      "zone": "page_2_quickwin_zone",
+      "n": 519223,
+      "total_impressions": 29386006.0,
+      "avg_impressions": 56.59611766042722
+    }
+  ],
+  "signal_2_verdict": "MIXED",
+  "rule": "0.6*low_ctr_flag + 0.4*quick_win_flag",
+  "action_counts": {
+    "review_now": 142660,
+    "monitor": 26502,
+    "consider": 7576
+  }
+}
