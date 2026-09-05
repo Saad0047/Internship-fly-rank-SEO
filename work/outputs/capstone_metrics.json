@@ -1,0 +1,7 @@
+{
+  "baseline_precision_at_50": 0.72,
+  "model_precision_at_50": 0.62,
+  "n_content_items": 94517,
+  "n_clients": 40,
+  "test_client_overlap": 0
+}
