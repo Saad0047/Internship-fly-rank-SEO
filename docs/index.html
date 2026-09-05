@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Content Should You Refresh First? A Client-Grouped Validation Study</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; color: #222; background: #fdfdfb; }
+  h1 { font-size: 1.9em; margin-bottom: 0.2em; }
+  h2 { border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-top: 2em; }
+  .subtitle { color: #666; font-style: italic; margin-bottom: 2em; }
+  .abstract { background: #f5f5f0; padding: 20px 25px; border-left: 4px solid #888; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+  th { background: #eee; }
+  code { background: #eee; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
+  img { max-width: 100%; border: 1px solid #ddd; margin: 1em 0; }
+  .chart-caption { font-size: 0.9em; color: #555; font-style: italic; margin-top: -0.5em; margin-bottom: 1.5em; }
+  .limitation-box { background: #fff8e6; border-left: 4px solid #d4a017; padding: 15px 20px; margin: 1em 0; }
+  .nogo-box { background: #fdecec; border-left: 4px solid #c0392b; padding: 15px 20px; margin: 1em 0; }
+  footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+  a { color: #2a5db0; }
+</style>
+</head>
+<body>
+
+<h1>Which Content Should You Refresh First?</h1>
+<p class="subtitle">A client-grouped validation study — FlyRank ML Internship Capstone — Saad Ullah — September 2026</p>
+
+<div class="abstract">
+<strong>Abstract.</strong> This study asks which content items an SEO editor should prioritize for review when only a handful of pages can be refreshed each month. Using 94,517 content items across 40 clients from FlyRank's March 2026 warehouse release, I trained a Random Forest classifier on four pre-decision signals (prior impressions, average position, CTR, impression volatility) and validated it against a hand-written baseline rule using a client-grouped split to prevent leakage. Results were inconsistent across two independent runs — the model beat the baseline in one (Precision@50 of 0.66 vs. 0.24) but lost to it in another (0.62 vs. 0.72) — a finding treated here as evidence that a 50-item precision score is not yet stable enough for a strong claim either way. The resulting queue is offered as human-reviewed, decision-support guidance, not a production recommendation engine.
+</div>
+
+<h2>1. Introduction</h2>
+<p>Content teams managing large SEO portfolios face a recurring problem: which of thousands of pages should be reviewed first when only a handful can be refreshed this month? A hand-written triage rule is transparent but rigid. This project investigates whether a simple, honestly-validated machine learning model can improve on such a rule using only signals knowable before the outcome, without claiming to explain or predict Google's ranking behavior.</p>
+
+<h2>2. Data</h2>
+<p>This study uses the <code>fact_content_daily_performance</code> table from the FlyRank internship warehouse release (Hugging Face, <code>month=2026-03</code> partition) — a mid-panel month, deliberately chosen over the release's final month (June 2026), which is reserved as a sealed test window and was never used here.</p>
+<ul>
+<li><strong>Scope:</strong> 94,517 content items across 40 clients, after filtering.</li>
+<li><strong>Window:</strong> the first half of March (days 1–15) supplied all features; the second half (days 16–31) defined the decline label — a strict past-to-future split within the month.</li>
+<li><strong>Exclusions:</strong> rows where <code>gsc_data_available</code> was false (roughly 63% of the raw panel — early-sync rows, not zero-traffic days) were dropped. GA4-based signals were not used, since under 5% of rows had GA4 sync this month. AI-referral and non-organic session columns were out of scope for this organic-search lane. The sealed final-month sample table was never touched.</li>
+</ul>
+
+<h2>3. Methodology</h2>
+<p><strong>Label.</strong> An item is labeled "declining" if its impressions in the second half of March fell below 80% of its first-half impressions — an observed, within-month outcome rather than a product-defined flag.</p>
+<p><strong>Features</strong> (all computed from the first-half window only, so all predate the label period): prior impression volume, average search position, click-through rate, and impression volatility.</p>
+<p><strong>Baseline.</strong> A hand-written rule combining a "CTR below tier average" flag and a "quick win" flag (position 11–20 with meaningful volume), weighted 0.6/0.4.</p>
+<p><strong>Model.</strong> A Random Forest classifier (300 trees, max depth 6).</p>
+<p><strong>Validation design.</strong> Train/test split via <code>GroupShuffleSplit</code>, grouped by client, so no client's content appears in both sets — this prevents the model from learning a client's baseline traffic level rather than a generalizable decline pattern. Confirmed zero client overlap in every run.</p>
+<p><strong>Leakage audit.</strong> All four features were confirmed to derive only from the pre-label window; none correlated strongly with the label in isolation (max |r| = 0.086). A naive random (non-grouped) split was tested separately and scored Precision@50 = 0.88 — meaningfully higher than the grouped split's 0.62, demonstrating the leakage a naive split would have introduced and justifying the grouped design used throughout.</p>
+
+<h2>4. Results</h2>
+<p>Comparing the model against the baseline on identical, client-grouped test splits, results varied across independent runs:</p>
+<table>
+<tr><th>Run</th><th>Baseline Precision@50</th><th>Model Precision@50</th></tr>
+<tr><td>Week 5/6 evaluation</td><td>0.24</td><td>0.66</td></tr>
+<tr><td>Capstone re-run</td><td>0.72</td><td>0.62</td></tr>
+</table>
+
+<img src="figures/results_comparison.png" alt="Model vs baseline Precision@50 comparison chart">
+<p class="chart-caption">Takeaway: the model's edge over the baseline reversed between two independently-run evaluations, showing the result is directional rather than settled.</p>
+
+<p>Permutation importance across runs consistently ranked click-through rate as the strongest (though still weak) individual signal, ahead of impression volatility, average position, and prior impression volume.</p>
+
+<img src="figures/feature_importance.png" alt="Permutation importance chart">
+<p class="chart-caption">Takeaway: no single feature carries strong signal on its own, consistent with earlier findings that individual pre-decision signals have AUC near 0.5.</p>
+
+<p>Error analysis (Week 6) found the model conservative: it produced zero confident false positives but a meaningful number of confident false negatives, concentrated on established pages with real volume and reasonable position that still declined — suggesting the current feature set is missing a freshness or query-mix signal, rather than indicating a modeling error.</p>
+
+<div class="limitation-box">
+<strong>Honest note on Section 4:</strong> the reversal between the two runs (model ahead in one, baseline ahead in the other) is treated here as a real finding, not noise to be hidden. With only 50 items scored per run, Precision@50 is sensitive to the exact split drawn. The model's advantage over the baseline is <em>directional, not settled</em> — a fair conclusion would require averaging Precision@50 over many random split draws before claiming a durable edge in either direction.
+</div>
+
+<h2>5. Limitations</h2>
+<div class="limitation-box">
+<ul>
+<li>Observational, single-month study (March 2026) — not a guarantee for other months or clients.</li>
+<li>Only content with synced GSC data this month was used (~37% of the raw panel); this subset may not represent the full portfolio evenly.</li>
+<li>The decline label is a proxy (a 15-day impression drop), not a client-validated business outcome such as revenue loss.</li>
+<li>No causal claims are made — features correlate with observed decline; this is a prioritization aid, not an explanation of Google's ranking behavior.</li>
+<li>Precision@50 varied meaningfully between evaluation runs, itself demonstrating that a single train/test split is not a fully stable basis for a claim in either direction.</li>
+<li>Not tested on live or future data — every number reported here is retrospective.</li>
+</ul>
+</div>
+
+<h2>6. Ranked Recommendations</h2>
+<p>The resulting decision-support queue ranks content items by model score, with a reason code attached to each recommendation: <code>model_flagged_decline_risk</code>, <code>model_flagged_low_ctr</code>, or <code>quick_win_page1_push</code>. Actions map to confidence thresholds: <code>review_now</code>, <code>consider</code>, or <code>monitor</code>.</p>
+
+<p><strong>Human review is required before acting on any recommendation:</strong></p>
+<ul>
+<li>Confirm the page hasn't already been manually updated this month — the model sees only search data, not CMS edit history.</li>
+<li>Confirm the decline isn't explained by a known external cause (seasonality, a site migration, a deliberate keyword pivot).</li>
+<li>Spot-check any "review now" item under roughly 200 monthly impressions, where the model's confidence is less reliable.</li>
+</ul>
+
+<div class="nogo-box">
+<strong>What should never be automated:</strong>
+<ul>
+<li>Auto-publishing content changes based on the queue.</li>
+<li>Auto-deprioritizing or removing items flagged "monitor" — absence from the top of the queue is not evidence a page is healthy.</li>
+<li>Reporting the model score externally as a client-facing health metric or SLA.</li>
+</ul>
+</div>
+
+<p><strong>Monitoring / retrain triggers:</strong> a meaningful drop in GSC data-sync coverage below the ~37% observed here, a sharp shift in the underlying decline base rate month-over-month, or a Precision@50 that falls below roughly 0.55 on a fresh month's held-out clients should all trigger re-validation before the queue is trusted further.</p>
+
+<h2>7. Reproducibility</h2>
+<p>All notebooks, data-contract audits, leakage checks, and metrics receipts referenced in this paper are available in the accompanying repository:</p>
+<ul>
+<li><a href="https://github.com/Saad0047/Internship-fly-rank-SEO/tree/main/work/notebooks">work/notebooks/</a> — every weekly notebook (data contract, baseline, model, validation audit, action playbook, capstone)</li>
+<li><a href="https://github.com/Saad0047/Internship-fly-rank-SEO/tree/main/work/outputs">work/outputs/</a> — metrics JSON receipts for every run referenced above</li>
+<li><a href="https://github.com/Saad0047/Internship-fly-rank-SEO/tree/main/work/figures">work/figures/</a> — source figures embedded in this paper</li>
+</ul>
+
+<footer>
+<p><strong>Acknowledgments &amp; Data Credit:</strong> Built on the FlyRank ML Internship dataset. Data and internship program provided by <a href="https://flyrank.ai" target="_blank">FlyRank</a>.</p>
+</footer>
+
+</body>
+</html>
