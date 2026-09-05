@@ -32,7 +32,7 @@
 </div>
 
 <h2>1. Introduction</h2>
-<p>Content teams managing large SEO portfolios face a recurring problem: which of thousands of pages should be reviewed first when only a handful can be refreshed this month? A hand-written triage rule is transparent but rigid. This project investigates whether a simple, honestly-validated machine learning model can improve on such a rule using only signals knowable before the outcome, without claiming to explain or predict Google's ranking behavior.</p>
+<p>FlyRank's own content teams manage portfolios of thousands of pages per client, and every month editors must decide which handful of pages to review first. Refresh the wrong pages, and you waste a limited editorial cycle; miss the right ones, and a page that was quietly declining keeps losing visibility until the drop is expensive to reverse. Today that decision often rests on intuition or a simple hand-written rule. This capstone asks a narrower, testable version of that same problem: using only signals knowable before the outcome — prior impressions, position, CTR, and volatility — can a simple, honestly-validated model out-prioritize a transparent rule at flagging which content is actually declining? The answer, reported honestly in Section 4, is not a clean yes.</p>
 
 <h2>2. Data</h2>
 <p>This study uses the <code>fact_content_daily_performance</code> table from the FlyRank internship warehouse release (Hugging Face, <code>month=2026-03</code> partition) — a mid-panel month, deliberately chosen over the release's final month (June 2026), which is reserved as a sealed test window and was never used here.</p>
