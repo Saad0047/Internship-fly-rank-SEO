@@ -1,0 +1,20 @@
+{
+  "month": "2026-03",
+  "n_items_scored": 25438,
+  "action_counts": {
+    "monitor": 20838,
+    "consider": 4600
+  },
+  "reason_code_counts": {
+    "monitor": 21818,
+    "quick_win_page1_push": 3614,
+    "model_flagged_low_ctr": 4,
+    "model_flagged_decline_risk": 2
+  },
+  "retrain_triggers": {
+    "gsc_availability_floor": 0.3,
+    "decline_base_rate_expected": 0.373,
+    "precision_at_50_floor": 0.55
+  },
+  "model_precision_at_50_honest_split": 0.62
+}
